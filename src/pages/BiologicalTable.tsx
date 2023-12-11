@@ -1,40 +1,67 @@
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import { IBiological } from '../interfaces/IBiological';
-import { BiologicalItem } from './BiologicalItem';
+import { IBiological, IBiologicalItem } from '../interfaces/IBiological';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
 
 interface IProps {
-    data: IBiological
+  data: IBiological
 }
 
-export function BiologicalTable(props: IProps){
-    const { data: { rows }} = props
+const columns: GridColDef[] = [
+  { field: 'name', headerName: 'Name', width: 300 },
+  { field: 'taxId', headerName: 'Tax ID', width: 200, type: 'number' },
+  {
+    field: 'abundanceScore',
+    headerName: 'Abundance score',
+    type: 'number',
+    width: 160,
+  },
+  {
+    field: 'relativeAbundance',
+    headerName: 'Relative abundance',
+    sortable: false,
+    width: 160,
+  },
+  {
+    field: 'matchFrequency',
+    headerName: 'Unique matches frequency',
+    sortable: false,
+    width: 160
+  },
+];
 
-    return (
-      <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell align="right">Tax ID</TableCell>
-                  <TableCell align="right">Abundance score</TableCell>
-                  <TableCell align="right">Relative abundance</TableCell>
-                  <TableCell align="right">Unique matches frequency</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.map((item) => (
-                  <BiologicalItem item={item} />
-                ))}
-              </TableBody>
-            </Table>
-      </TableContainer>    
-    )
-  
-  }
-  
+function prepareBiologicalData(items: IBiologicalItem[]) {
+  const strainLevel = 7;
+
+  const data = items.map((item) => {
+    return {
+      id: item.metadata.lineage[strainLevel].tax_id,
+      name: item.metadata.lineage[strainLevel].name,
+      taxId: item.metadata.lineage[strainLevel].tax_id,
+      abundanceScore: null,
+      relativeAbundance: null,
+      matchFrequency: null
+    }
+  })
+
+  return data
+}
+
+export function BiologicalTable(props: IProps) {
+  const { data } = props
+  const rows = prepareBiologicalData(data.rows)
+
+  return (
+    <div style={{ height: 400, width: '100%' }}>
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        initialState={{
+          pagination: {
+            paginationModel: { page: 0, pageSize: 5 },
+          },
+        }}
+        pageSizeOptions={[5, 10]}
+      />
+    </div>
+  );
+
+}
